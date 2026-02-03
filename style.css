@@ -118,3 +118,75 @@ footer {
     background: #333;
     content: "SLÄCK!";
 }
+
+/* Gör knappen riktigt fet */
+.eld-knapp {
+    display: block;
+    width: 300px; /* Större bredd */
+    margin: 100px auto;
+    padding: 30px; /* Mer padding för storlek */
+    background: linear-gradient(#ff4500, #ff0000);
+    color: white;
+    text-align: center;
+    font-family: 'Arial Black', sans-serif;
+    font-size: 2.5rem; /* Mycket större text */
+    text-transform: uppercase;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 10px 0 #8b0000;
+    transition: all 0.2s;
+    user-select: none;
+    position: relative;
+    z-index: 10000;
+}
+
+.eld-knapp:hover {
+    transform: scale(1.05);
+}
+
+.eld-knapp:active {
+    transform: translateY(8px);
+    box-shadow: 0 2px 0 #8b0000;
+}
+
+/* Dölj checkboxen */
+#fire-trigger {
+    display: none;
+}
+
+/* Eld-overlayen */
+.fire-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/Lopx9eUi34rbq/giphy.gif') center center / cover no-repeat;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: screen;
+}
+
+/* NÄR MAN KLICKAR: Kör animeringen i 10 sekunder */
+#fire-trigger:checked ~ .fire-overlay {
+    animation: burnForTen 10s forwards;
+}
+
+/* Om man klickar igen (avmarkerar) så döljs den direkt tack vare CSS-logiken */
+#fire-trigger:not(:checked) ~ .fire-overlay {
+    opacity: 0;
+}
+
+/* Animering som håller elden synlig i 10 sekunder och sen tonar ut */
+@keyframes burnForTen {
+    0% { opacity: 1; }
+    90% { opacity: 1; } /* Fortsätt brinna till 9 sekunder */
+    100% { opacity: 0; } /* Tona ut sista sekunden */
+}
+
+/* Ändra knappens text/färg när det brinner (valfritt) */
+#fire-trigger:checked ~ .eld-knapp {
+    background: #333;
+    box-shadow: 0 10px 0 #000;
+}
