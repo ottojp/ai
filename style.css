@@ -65,3 +65,56 @@ footer {
         margin-bottom: 10px;
     }
 }
+/* Dölj checkboxen helt */
+#fire-trigger {
+    display: none;
+}
+
+/* Snygga till knappen (labeln) */
+.eld-knapp {
+    display: block;
+    width: 200px;
+    margin: 50px auto;
+    padding: 15px;
+    background: linear-gradient(#e74c3c, #c0392b);
+    color: white;
+    text-align: center;
+    font-family: sans-serif;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 4px 0 #962d22;
+    transition: transform 0.1s;
+}
+
+.eld-knapp:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+/* Eld-overlayen (dold som standard) */
+.fire-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3bmZ3JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/Lopx9eUi34rbq/giphy.gif') center center / cover no-repeat;
+    opacity: 0;
+    pointer-events: none; /* Så man inte råkar klicka på elden */
+    transition: opacity 0.3s ease;
+    z-index: 9999;
+    mix-blend-mode: screen; /* Gör att det svarta i GIF:en blir genomskinligt */
+}
+
+/* NÄR MAN KLICKAR (Checkboxen blir markerad) */
+#fire-trigger:checked ~ .fire-overlay {
+    opacity: 1;
+}
+
+/* Valfritt: Gör att knappen ser "intryckt" ut när det brinner */
+#fire-trigger:checked ~ .eld-knapp {
+    background: #333;
+    content: "SLÄCK!";
+}
