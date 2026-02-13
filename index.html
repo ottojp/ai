@@ -3,125 +3,491 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Otto – Portfolio</title>
-
+  <title>Impostor – Partyspel</title>
+  <meta name="description" content="Ett socialt ordspel där en eller två impostors bluffar sig igenom ronderna.">
   <style>
-    :root {
-      --bg: #0f0f17;
-      --card-bg: #1b1b29;
-      --text: #ffffff;
-      --accent: #6a5acd;
-      --accent2: #9f8bff;
-      --radius: 18px;
-      --shadow: 0 8px 30px rgba(0,0,0,0.45);
+    :root{
+      --bg:#0f0f17; --panel:#171826; --card:#1e2032; --text:#fff;
+      --muted:#b7b7c9; --accent:#6a5acd; --accent2:#9f8bff; --ok:#00d084; --warn:#ffb020; --bad:#ff4d4d;
+      --r:16px; --shadow:0 14px 40px rgba(0,0,0,.35);
     }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      font-family: "Inter", system-ui, sans-serif;
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 30px 15px;
-    }
-
-    header {
-      text-align: center;
-      margin-top: 30px;
-      animation: fadeIn 1s ease-in-out;
-    }
-
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-
-    p.subtitle {
-      font-size: 1.3rem;
-      opacity: 0.8;
-      margin-top: -5px;
-    }
-
-    .card {
-      margin-top: 40px;
-      background: var(--card-bg);
-      padding: 30px;
-      border-radius: var(--radius);
-      max-width: 800px;
-      width: 100%;
-      box-shadow: var(--shadow);
-      animation: fadeUp 1.2s ease-in-out;
-    }
-
-    h2 {
-      color: var(--accent2);
-      margin-top: 0;
-      font-size: 2rem;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 12px 22px;
-      margin-top: 20px;
-      background: var(--accent);
-      border-radius: 12px;
-      text-decoration: none;
-      color: #fff;
-      font-weight: 600;
-      transition: 0.2s;
-    }
-
-    .btn:hover {
-      background: var(--accent2);
-      transform: translateY(-2px);
-    }
-
-    footer {
-      margin-top: 60px;
-      opacity: 0.5;
-      font-size: 0.9rem;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-15px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0d0d14 0%, #15162b 100%);color:var(--text);
+         font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;}
+    header{max-width:980px;margin:24px auto 0;padding:0 16px;text-align:center}
+    h1{margin:.2rem 0 0;font-size:clamp(1.8rem,3.8vw,3rem);
+       background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent}
+    .sub{opacity:.75;margin:.2rem 0 0}
+    main{max-width:980px;margin:18px auto;padding:16px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+    .row{display:grid;gap:12px}
+    @media(min-width:760px){.row-2{grid-template-columns:1fr 1fr}}
+    .btn{appearance:none;border:0;cursor:pointer;background:var(--accent);color:#fff;border-radius:12px;
+         padding:10px 16px;font-weight:700;transition:.18s;display:inline-flex;align-items:center;gap:.5rem;text-decoration:none}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn:hover{transform:translateY(-1px);background:var(--accent2)}
+    .btn.outline{background:transparent;border:1px solid rgba(255,255,255,.18)}
+    .grid{display:grid;gap:12px}
+    .players li{display:flex;gap:8px;align-items:center;background:var(--panel);border-radius:12px;padding:8px 10px}
+    input[type="text"], select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+       background:#0e0f1a;color:#fff}
+    .hint{font-size:.94rem;opacity:.82}
+    .pill{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .6rem;border-radius:999px;background:#0e0f1a;border:1px solid rgba(255,255,255,.12)}
+    .tag{background:#0e0f1a;border:1px dashed rgba(255,255,255,.18);padding:.35rem .6rem;border-radius:999px;opacity:.85}
+    .title{margin:.2rem 0 1rem;font-size:1.35rem;color:#e5e5ff}
+    .stack{display:flex;flex-wrap:wrap;gap:10px}
+    .center{display:flex;justify-content:center;align-items:center}
+    .timer{font:700 clamp(1.6rem,5vw,2.4rem)/1 monospace;background:#0e0f1a;border-radius:12px;padding:.5rem .9rem}
+    .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+    footer{opacity:.55;text-align:center;margin:24px 0}
+    .sep{height:1px;background:linear-gradient(90deg,transparent, rgba(255,255,255,.15), transparent);margin:10px 0 14px}
+    .small{font-size:.9rem;opacity:.85}
+    /* checklist */
+    .checklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+    .check{display:flex;gap:10px;align-items:center;background:var(--panel);padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.1)}
+    .check input{accent-color:var(--accent)}
+    .votes{border-collapse:collapse;width:100%}
+    .votes th,.votes td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px;text-align:left}
+    .right{margin-left:auto}
   </style>
 </head>
-
 <body>
-
   <header>
-    <h1>Hej, jag är Otto 👋</h1>
-    <p class="subtitle">Välkommen till min snygga GitHub‑sida</p>
+    <h1>Impostor – Partyspel</h1>
+    <p class="sub">Starta runda, visa roller en‑och‑en, diskutera och rösta – allt på en skärm.</p>
   </header>
 
-  <div class="card">
-    <h2>👨‍💻 Om mig</h2>
-    <p>
-      Jag är en engagerad elev på Elof Lindälvs gymnasium som bygger projekt,
-      experimenterar med webbteknik och lär mig nya saker varje dag.
-    </p>
+  <main id="app"></main>
 
-    <h2>🚀 Mina projekt</h2>
-    <p>Här kommer jag att lägga upp spel, appar och coola experiment.</p>
+  <footer>© 2026 Otto – GitHub Pages</footer>
 
-    <a href="https://github.com/ottojp" class="btn" target="_blank">Min GitHub-profil</a>
-  </div>
+  <script>
+    /***************
+     * LITEN ORDLISTA (byt gärna till dina egna)
+     ***************/
+    const CATEGORIES = [
+      { id: "frukt", name: "Frukt", words: {
+        easy:   [{word:"Äpple",  hint:"Röd eller grön"}, {word:"Banan", hint:"Gul och böjd"}],
+        medium: [{word:"Ananas", hint:"Taggig krona"},   {word:"Kiwi",  hint:"Luddig"}],
+        hard:   [{word:"Guava",  hint:"Tropisk frukt"}]
+      }},
+      { id: "djur", name: "Djur", words: {
+        easy:   [{word:"Hund",   hint:"Bästa vännen"},   {word:"Katt",  hint:"Spinner"}],
+        medium: [{word:"Uggla",  hint:"Nattaktiv"},      {word:"Säl",   hint:"Simhud"}],
+        hard:   [{word:"Okapi",  hint:"Släkting till giraff"}]
+      }},
+      { id: "sport", name: "Sport", words: {
+        easy:   [{word:"Fotboll",hint:"11 vs 11"},       {word:"Tennis",hint:"Rack"}],
+        medium: [{word:"Handboll",hint:"6 meter"},       {word:"Orientering",hint:"Karta & kompass"}],
+        hard:   [{word:"Curling",hint:"Is och sten"}]
+      }}
+    ];
 
-  <footer>
-    © 2026 Otto – Byggd med GitHub Pages
-  </footer>
+    /*************** Hjälpmedel ***************/
+    const randInt = max => crypto.getRandomValues(new Uint32Array(1))[0] % max;
+    const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=randInt(i+1); [a[i],a[j]]=[a[j],a[i]]} return a; };
+    const byId = id => document.getElementById(id);
+    const fmt = n => String(n).padStart(2,"0");
 
+    /*************** Spel‑state ***************/
+    const state = {
+      phase: "home",
+      players: Array.from({length:4}, (_,i)=>({id:i, name:`Spelare ${i+1}`, isImposter:false, score:0, vote:null})),
+      nextId: 10,
+      selectedCategories: [],
+      settings: { difficulty:"medium", imposterCount:1, hintsEnabled:true, timerMinutes:2, votingMode:"anonymous" },
+      secretWord:"", secretCategory:"", secretHint:"",
+      roundNumber:1, currentRevealIndex:0, speakingOrder: null
+    };
+
+    function maxImposters(){ return Math.min(2, Math.floor(state.players.length/3)); }
+
+    function getRandomWord(selectedIds, difficulty){
+      const pool = (selectedIds.length? CATEGORIES.filter(c=>selectedIds.includes(c.id)) : CATEGORIES);
+      const cat = pool.length ? pool[randInt(pool.length)] : CATEGORIES[0];
+      const list = cat.words[difficulty] ?? cat.words.medium ?? cat.words.easy;
+      const pick = list[randInt(list.length)];
+      return { word: pick.word, category: cat.name, hint: pick.hint ?? "" };
+    }
+
+    /*************** Tillståndsändringar ***************/
+    function addPlayer(){ if(state.players.length>=10) return; state.players.push({id:state.nextId++, name:`Spelare ${state.players.length+1}`, isImposter:false, score:0, vote:null}); render(); }
+    function removePlayer(){ if(state.players.length<=3) return; state.players.pop(); if(state.settings.imposterCount>maxImposters()) state.settings.imposterCount=maxImposters(); render(); }
+    function updatePlayerName(id, name){ const p=state.players.find(p=>p.id===id); if(p){p.name=name; render.players?.()} }
+    function toggleCategory(id){ const s=state.selectedCategories; const i=s.indexOf(id); if(i>=0) s.splice(i,1); else s.push(id); render(); }
+    function selectAllCategories(){ state.selectedCategories = CATEGORIES.map(c=>c.id); render(); }
+    function deselectAllCategories(){ state.selectedCategories = []; render(); }
+
+    function startRound(){
+      // hemligt ord
+      const {word, category, hint} = getRandomWord(state.selectedCategories, state.settings.difficulty);
+      state.secretWord = word; state.secretCategory = category; state.secretHint = hint;
+
+      // impostors
+      let players = shuffle(state.players).map(p=>({...p, isImposter:false, vote:null}));
+      for(let i=0; i<Math.min(state.settings.imposterCount, players.length); i++) players[i].isImposter=true;
+      state.players = shuffle(players);
+
+      // talaordning & reveal
+      state.currentRevealIndex = 0;
+      state.speakingOrder = shuffle(state.players);
+      state.phase = "roleReveal";
+      render();
+    }
+
+    function proceedFromDiscussion(){
+      if(state.settings.votingMode==="live"){ applyScores(); state.phase="results"; render(); }
+      else { state.phase="voting"; render(); }
+    }
+
+    function castVote(voterId, targetId){
+      const p=state.players.find(x=>x.id===voterId);
+      if(p){ p.vote = targetId===""? null : Number(targetId); }
+      render.voting?.();
+    }
+
+    function getResults(){
+      const imposters = state.players.filter(p=>p.isImposter);
+      const counts = {};
+      state.players.forEach(p=>{ if(p.vote!=null) counts[p.vote]=(counts[p.vote]||0)+1; });
+      const max = Object.values(counts).length? Math.max(...Object.values(counts)) : 0;
+      const mostVotedIds = Object.entries(counts).filter(([,v])=>v===max).map(([k])=>Number(k));
+      const caughtImposters = imposters.filter(imp=>mostVotedIds.includes(imp.id));
+      const imposterWon = caughtImposters.length===0;
+      return { imposters, caughtImposters, imposterWon, counts };
+    }
+
+    function applyScores(){
+      const {imposters, caughtImposters, imposterWon} = getResults();
+      state.players = state.players.map(p=>{
+        if(p.isImposter) return {...p, score: p.score + (imposterWon? 20 : 0)};
+        const votedImposter = imposters.some(imp=>imp.id===p.vote);
+        return {...p, score: p.score + (votedImposter? 10 : 0)};
+      });
+      state.roundNumber++;
+    }
+
+    function playAgain(){
+      state.players = state.players.map(p=>({...p, isImposter:false, vote:null}));
+      state.currentRevealIndex = 0;
+      state.phase = "settings";
+      render();
+    }
+    function resetScores(){ state.players = state.players.map(p=>({...p, score:0})); state.roundNumber=1; render(); }
+    function resetGame(){
+      state.phase="home";
+      state.players = Array.from({length:4}, (_,i)=>({id:i, name:`Spelare ${i+1}`, isImposter:false, score:0, vote:null}));
+      state.nextId=10; state.selectedCategories=[]; state.settings={difficulty:"medium", imposterCount:1, hintsEnabled:true, timerMinutes:2, votingMode:"anonymous"};
+      state.secretWord=""; state.secretCategory=""; state.secretHint=""; state.roundNumber=1; state.speakingOrder=null; state.currentRevealIndex=0;
+      render();
+    }
+
+    /*************** Render‑funktioner (enkel SPA) ***************/
+    const app = byId("app");
+    function html(strings,...vals){ return strings.map((s,i)=>s+(vals[i]??"")).join(""); }
+
+    function renderHome(){
+      app.innerHTML = html`
+        <section class="card grid">
+          <div class="title">👥 Spelare</div>
+          <ul class="grid players" id="players">
+            ${state.players.map(p=>html`
+              <li>
+                <span class="pill">#${p.id}</span>
+                <input type="text" value="${p.name}" aria-label="Namn" data-id="${p.id}">
+                <span class="right tag">Poäng: ${p.score}</span>
+              </li>
+            `).join("")}
+          </ul>
+          <div class="stack">
+            <button class="btn" id="add">+ Lägg till</button>
+            <button class="btn outline" id="remove">– Ta bort</button>
+            <span class="tag">Minst 3, max 10 spelare</span>
+          </div>
+          <div class="sep"></div>
+          <div class="stack">
+            <button class="btn" id="toCats">Välj kategorier</button>
+            <button class="btn outline" id="toSettings">Inställningar</button>
+          </div>
+        </section>
+      `;
+      // events
+      byId("add").onclick = addPlayer;
+      byId("remove").onclick = removePlayer;
+      byId("toCats").onclick = ()=>{ state.phase="categories"; render(); };
+      byId("toSettings").onclick = ()=>{ state.phase="settings"; render(); };
+      // namn
+      app.querySelectorAll('input[type="text"]').forEach(inp=>{
+        inp.addEventListener("input", e=>updatePlayerName(Number(inp.dataset.id), inp.value));
+      });
+      // lås imposterCount om för många
+      if(state.settings.imposterCount>maxImposters()){ state.settings.imposterCount=maxImposters(); }
+      render.players = ()=>{ /* uppdatera bara namnraden vid skrivning (lätt) */ };
+    }
+
+    function renderCategories(){
+      app.innerHTML = html`
+        <section class="card grid">
+          <div class="title">🗂️ Välj kategorier</div>
+          <div class="checklist">
+            ${CATEGORIES.map(c=>html`
+              <label class="check">
+                <input type="checkbox" ${state.selectedCategories.includes(c.id)?"checked":""} data-id="${c.id}">
+                <span>${c.name}</span>
+              </label>
+            `).join("")}
+          </div>
+          <div class="stack">
+            <button class="btn outline" id="all">Markera alla</button>
+            <button class="btn outline" id="none">Rensa</button>
+            <span class="tag">Lämna tomt för "blanda"</span>
+          </div>
+          <div class="sep"></div>
+          <div class="stack">
+            <button class="btn" id="back">← Tillbaka</button>
+            <button class="btn" id="toSettings">Nästa: Inställningar</button>
+          </div>
+        </section>
+      `;
+      app.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+        cb.onchange = ()=>toggleCategory(cb.dataset.id);
+      });
+      byId("all").onclick = selectAllCategories;
+      byId("none").onclick = deselectAllCategories;
+      byId("back").onclick = ()=>{ state.phase="home"; render(); };
+      byId("toSettings").onclick = ()=>{ state.phase="settings"; render(); };
+    }
+
+    function renderSettings(){
+      const diff = ["easy","medium","hard"];
+      const timers = [0,1,2,3];
+      const maxImp = maxImposters();
+      if(state.settings.imposterCount>maxImp){ state.settings.imposterCount=maxImp; }
+      app.innerHTML = html`
+        <section class="card grid">
+          <div class="title">⚙️ Inställningar</div>
+
+          <div class="row row-2">
+            <div class="card">
+              <div class="title">Svårighet</div>
+              <div class="stack">
+                ${diff.map(d=>html`
+                  <button class="btn ${state.settings.difficulty===d?"":"outline"}" data-d="${d}">${d[0].toUpperCase()+d.slice(1)}</button>
+                `).join("")}
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="title">Impostors</div>
+              <div class="stack">
+                ${[1,2].map(n=>html`
+                  <button class="btn ${state.settings.imposterCount===n?"":"outline"}" data-imp="${n}" ${n>maxImp?"disabled":""}>${n}</button>
+                `).join("")}
+                <span class="hint">Max beror på antal spelare (≈ 1 per 3).</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row row-2">
+            <div class="card">
+              <div class="title">Röstning</div>
+              <div class="stack">
+                <button class="btn ${state.settings.votingMode==="anonymous"?"":"outline"}" data-vm="anonymous">In‑app</button>
+                <button class="btn ${state.settings.votingMode==="live"?"":"outline"}" data-vm="live">IRL</button>
+                <span class="hint">${state.settings.votingMode==="anonymous" ? "Var och en röstar i appen." : "Diskutera och peka IRL – appen visar bara resultat/poäng."}</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="title">Diskussionstimer</div>
+              <div class="stack">
+                ${timers.map(t=>html`
+                  <button class="btn ${state.settings.timerMinutes===t?"":"outline"}" data-t="${t}">${t===0?"Av":t+" min"}</button>
+                `).join("")}
+              </div>
+              <label class="stack" style="margin-top:.6rem">
+                <span class="pill">Hintar för impostor:</span>
+                <input type="checkbox" id="hints" ${state.settings.hintsEnabled?"checked":""} />
+              </label>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+          <div class="stack">
+            <button class="btn" id="back">← Tillbaka</button>
+            <button class="btn" id="start">Starta runda</button>
+          </div>
+        </section>
+      `;
+      // events
+      app.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{state.settings.difficulty=b.dataset.d; render();});
+      app.querySelectorAll('[data-imp]').forEach(b=>b.onclick=()=>{state.settings.imposterCount=Number(b.dataset.imp); render();});
+      app.querySelectorAll('[data-vm]').forEach(b=>b.onclick=()=>{state.settings.votingMode=b.dataset.vm; render();});
+      app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{state.settings.timerMinutes=Number(b.dataset.t); render();});
+      byId("hints").onchange = e=>{ state.settings.hintsEnabled = e.target.checked; };
+      byId("back").onclick = ()=>{ state.phase="home"; render(); };
+      byId("start").onclick = startRound;
+    }
+
+    function renderRoleReveal(){
+      const p = state.players[state.currentRevealIndex];
+      const last = state.currentRevealIndex === state.players.length-1;
+      app.innerHTML = html`
+        <section class="card grid center" style="min-height:60vh;text-align:center">
+          <div>
+            <div class="title">📣 Rollvisning</div>
+            <p class="small">Ge enheten till <b>${p.name}</b>. Andra tittar bort.</p>
+            <div class="card" style="margin:12px auto;max-width:560px">
+              ${p.isImposter
+                ? html`<h2 class="bad">Du är IMPOSTOR 👀</h2>
+                       <p class="hint">Försök bluffa! ${state.settings.hintsEnabled? "Hint (till hjälp): <b>"+state.secretHint+"</b>":""}</p>`
+                : html`<h2 class="ok">Du är CREWMATE ✅</h2>
+                       <p>Hemliga ordet: <b>${state.secretWord}</b></p>
+                       <p class="hint">Kategori: ${state.secretCategory}${state.settings.hintsEnabled? " • Hint: <b>"+state.secretHint+"</b>":""}</p>`
+              }
+            </div>
+            <div class="stack center">
+              <button class="btn" id="next">${last? "Starta diskussion →" : "Jag är klar – nästa spelare →"}</button>
+            </div>
+          </div>
+        </section>
+      `;
+      byId("next").onclick = ()=>{
+        if(state.currentRevealIndex < state.players.length-1){ state.currentRevealIndex++; render(); }
+        else { state.phase="discussion"; render(); }
+      };
+    }
+
+    function renderDiscussion(){
+      const totalSeconds = (state.settings.timerMinutes||0)*60;
+      app.innerHTML = html`
+        <section class="card grid">
+          <div class="title">💬 Diskussion</div>
+          <p class="hint">Varje spelare säger ett ord som anspelar på det hemliga ordet. Impostor bluffar.</p>
+
+          ${totalSeconds>0 ? html`
+            <div class="center"><div class="timer" id="t">--:--</div></div>
+          ` : html`<p class="tag">Timer: Av</p>`}
+
+          <h3>Ordning att tala:</h3>
+          <ol id="order" class="grid" style="padding-left:1.2rem">
+            ${state.speakingOrder.map((p,i)=>html`<li>#${i+1} – ${p.name}</li>`).join("")}
+          </ol>
+
+          <div class="sep"></div>
+          <div class="stack">
+            ${state.settings.votingMode==="live"
+                ? html`<button class="btn" id="toResults">Visa resultat</button>
+                       <span class="hint">Rösta IRL genom att peka – appen beräknar bara resultat/poäng.</span>`
+                : html`<button class="btn" id="toVoting">Gå till röstning</button>`}
+          </div>
+        </section>
+      `;
+
+      // timer
+      if(totalSeconds>0){
+        let left = totalSeconds;
+        const el=byId("t");
+        const iv=setInterval(()=>{
+          el.textContent = `${fmt(Math.floor(left/60))}:${fmt(left%60)}`;
+          if(left--<=0){ clearInterval(iv); el.classList.add("bad"); }
+        }, 1000);
+      }
+      if(state.settings.votingMode==="live") byId("toResults").onclick = ()=>{ applyScores(); state.phase="results"; render(); };
+      else byId("toVoting").onclick = ()=>{ state.phase="voting"; render(); };
+    }
+
+    function renderVoting(){
+      app.innerHTML = html`
+        <section class="card grid">
+          <div class="title">🗳️ Röstning (anonym i appen)</div>
+          <table class="votes">
+            <thead><tr><th>Väljare</th><th>Röstar på</th></tr></thead>
+            <tbody id="voteRows">
+              ${state.players.map(voter=>html`
+                <tr>
+                  <td>${voter.name}</td>
+                  <td>
+                    <select data-voter="${voter.id}">
+                      <option value="">— välj —</option>
+                      ${state.players.map(t=>html`
+                        <option value="${t.id}" ${voter.vote===t.id?"selected":""} ${t.id===voter.id?"disabled":""}>${t.name}</option>
+                      `).join("")}
+                    </select>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+          <div class="sep"></div>
+          <div class="stack">
+            <button class="btn" id="finish" disabled>Visa resultat</button>
+          </div>
+        </section>
+      `;
+      app.querySelectorAll('select[data-voter]').forEach(sel=>{
+        sel.onchange = ()=>castVote(Number(sel.dataset.voter), sel.value);
+      });
+      render.voting = ()=>{
+        const allVoted = state.players.every(p=>p.vote!=null);
+        byId("finish").disabled = !allVoted;
+      };
+      byId("finish").onclick = ()=>{ applyScores(); state.phase="results"; render(); };
+      render.voting();
+    }
+
+    function renderResults(){
+      const {imposters, caughtImposters, imposterWon, counts} = getResults();
+      const nameById = id => state.players.find(p=>p.id===id)?.name ?? ("#"+id);
+      app.innerHTML = html`
+        <section class="card grid">
+          <div class="title">🏁 Resultat – Runda ${state.roundNumber-1}</div>
+          <p><b>Impostors:</b> ${imposters.map(p=>p.name).join(", ") || "—"}</p>
+          <p class="${imposterWon?"bad":"ok"}"><b>${imposterWon? "Impostors vann!" : "Crew vann!"}</b></p>
+
+          <details class="card"><summary class="small">Visa röster</summary>
+            <ul>
+              ${Object.keys(counts).length
+                ? Object.entries(counts).map(([id,c])=>html`<li>${nameById(Number(id))}: ${c} röster</li>`).join("")
+                : "<li>Ingen röstade.</li>"}
+            </ul>
+          </details>
+
+          <div class="sep"></div>
+          <h3>Poängställning</h3>
+          <ul class="players">
+            ${state.players.map(p=>html`
+              <li>
+                <span class="pill">${p.isImposter? "🕵️‍♂️" : "🧑‍🚀"}</span>
+                <b>${p.name}</b>
+                <span class="right tag">Poäng: ${p.score}</span>
+              </li>
+            `).join("")}
+          </ul>
+
+          <div class="sep"></div>
+          <div class="stack">
+            <button class="btn" id="again">Spela igen</button>
+            <button class="btn outline" id="resetScores">Nollställ poäng</button>
+            <button class="btn outline" id="resetAll">Starta om</button>
+          </div>
+        </section>
+      `;
+      byId("again").onclick = playAgain;
+      byId("resetScores").onclick = resetScores;
+      byId("resetAll").onclick = resetGame;
+    }
+
+    function render(){
+      if(state.phase==="home") return renderHome();
+      if(state.phase==="categories") return renderCategories();
+      if(state.phase==="settings") return renderSettings();
+      if(state.phase==="roleReveal") return renderRoleReveal();
+      if(state.phase==="discussion") return renderDiscussion();
+      if(state.phase==="voting") return renderVoting();
+      if(state.phase==="results") return renderResults();
+    }
+    render(); // start
+  </script>
 </body>
 </html>
