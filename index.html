@@ -3,39 +3,125 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Det funkar!</title>
+  <title>Otto – Portfolio</title>
+
   <style>
+    :root {
+      --bg: #0f0f17;
+      --card-bg: #1b1b29;
+      --text: #ffffff;
+      --accent: #6a5acd;
+      --accent2: #9f8bff;
+      --radius: 18px;
+      --shadow: 0 8px 30px rgba(0,0,0,0.45);
+    }
+
     body {
-      font-family: system-ui, Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
-      background: #f0f0f0;
+      background: var(--bg);
+      font-family: "Inter", system-ui, sans-serif;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 15px;
     }
-    div {
-      background: white;
-      padding: 40px 60px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+
+    header {
       text-align: center;
+      margin-top: 30px;
+      animation: fadeIn 1s ease-in-out;
     }
+
     h1 {
-      margin: 0 0 20px;
-      font-size: 2.5rem;
-      color: #333;
+      font-size: 3rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      color: transparent;
     }
-    p {
-      font-size: 1.2rem;
-      color: #666;
+
+    p.subtitle {
+      font-size: 1.3rem;
+      opacity: 0.8;
+      margin-top: -5px;
+    }
+
+    .card {
+      margin-top: 40px;
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: var(--radius);
+      max-width: 800px;
+      width: 100%;
+      box-shadow: var(--shadow);
+      animation: fadeUp 1.2s ease-in-out;
+    }
+
+    h2 {
+      color: var(--accent2);
+      margin-top: 0;
+      font-size: 2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 22px;
+      margin-top: 20px;
+      background: var(--accent);
+      border-radius: 12px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--accent2);
+      transform: translateY(-2px);
+    }
+
+    footer {
+      margin-top: 60px;
+      opacity: 0.5;
+      font-size: 0.9rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-15px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
+
 <body>
-  <div>
-    <h1>Det funkar! 🎉</h1>
-    <p>Din GitHub Pages‑sida är nu igång.</p>
+
+  <header>
+    <h1>Hej, jag är Otto 👋</h1>
+    <p class="subtitle">Välkommen till min snygga GitHub‑sida</p>
+  </header>
+
+  <div class="card">
+    <h2>👨‍💻 Om mig</h2>
+    <p>
+      Jag är en engagerad elev på Elof Lindälvs gymnasium som bygger projekt,
+      experimenterar med webbteknik och lär mig nya saker varje dag.
+    </p>
+
+    <h2>🚀 Mina projekt</h2>
+    <p>Här kommer jag att lägga upp spel, appar och coola experiment.</p>
+
+    <a href="https://github.com/ottojp" class="btn" target="_blank">Min GitHub-profil</a>
   </div>
+
+  <footer>
+    © 2026 Otto – Byggd med GitHub Pages
+  </footer>
+
 </body>
 </html>
