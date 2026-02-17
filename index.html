@@ -40,22 +40,14 @@
     .title{margin:.2rem 0 1rem;font-size:1.35rem;color:#e5e5ff}
     .stack{display:flex;flex-wrap:wrap;gap:10px}
     .center{display:flex;justify-content:center;align-items:center}
-    .timer{font:700 clamp(1.6rem,5vw,2.4rem)/1 monospace;background:#0e0f1a;border-radius:12px;padding:.5rem .9rem}
     .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
     footer{opacity:.55;text-align:center;margin:24px 0}
     .sep{height:1px;background:linear-gradient(90deg,transparent, rgba(255,255,255,.15), transparent);margin:10px 0 14px}
     .small{font-size:.9rem;opacity:.85}
-    /* checklist */
-    .checklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
-    .check{display:flex;gap:10px;align-items:center;background:var(--panel);padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.1)}
-    .check input{accent-color:var(--accent)}
-    .votes{border-collapse:collapse;width:100%}
-    .votes th,.votes td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px;text-align:left}
-    .right{margin-left:auto}
     .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:8px}
     .pill-lg{font-size:1.05rem;padding:.5rem .8rem}
 
-    /* 🔹 Flip card – stilar (globalt) */
+    /* Flip card – stilar */
     .flip-container {
       perspective: 1200px;
       width: 100%;
@@ -64,7 +56,7 @@
     }
     .flip-card {
       width: 100%;
-      min-height: 220px;
+      min-height: 240px;
       position: relative;
       transform-style: preserve-3d;
       transition: transform 0.7s ease;
@@ -81,6 +73,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      gap: .4rem;
     }
     .flip-front {
       background: #0e0f1a;
@@ -91,13 +84,25 @@
       border: 1px solid rgba(255,255,255,0.18);
       transform: rotateY(180deg);
     }
-    .flip-button { margin-top: 14px; }
+    .role-title { margin: 0 0 .4rem 0; }
+    .secret-wrap {
+      margin-top: .6rem;
+      text-align: center;
+      display: grid;
+      gap: .25rem;
+    }
+    .secret-word { font-size: 1.35rem; font-weight: 800; letter-spacing: .3px; }
+    .flip-button { margin-top: 10px; }
+    /* Rösträkning – klickbara kort */
+    .pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+    .pick{background:var(--panel);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:14px;cursor:pointer;transition:.18s}
+    .pick:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.28)}
   </style>
 </head>
 <body>
   <header>
     <h1>Impostor – Partyspel</h1>
-    <p class="sub">Starta runda, visa roller en‑och‑en, diskutera och rösta – allt på en skärm.</p>
+    <p class="sub">Starta runda, visa roller en‑och‑en, diskutera och rösta IRL – sedan registrera resultat här.</p>
   </header>
 
   <main id="app"></main>
@@ -106,49 +111,97 @@
 
   <script>
     /***************
-     * KATEGORIER (inkl. dina)
+     * KATEGORIER – Svenska med svårare ledtrådar
      ***************/
     const CATEGORIES = [
       { id: "frukt", name: "Frukt", words: {
-        easy:   [{word:"Äpple",  hint:"Röd eller grön"}, {word:"Banan", hint:"Gul och böjd"}],
-        medium: [{word:"Ananas", hint:"Taggig krona"},   {word:"Kiwi",  hint:"Luddig"}],
-        hard:   [{word:"Guava",  hint:"Tropisk frukt"}]
+        easy:   [
+          {word:"Äpple",       hint:"Kärnhus, ofta vaxblankt skal"},
+          {word:"Banan",       hint:"Egentligen ett bär från en ört"}
+        ],
+        medium: [
+          {word:"Apelsin",     hint:"Citrus med bittert skal och klyftor"},
+          {word:"Kiwi",        hint:"Grönt fruktkött med svarta frön"}
+        ],
+        hard:   [
+          {word:"Granatäpple", hint:"Arillus runt massor av frön"},
+          {word:"Kvitten",     hint:"Stenhård, doftande – blir ätlig efter kokning"}
+        ]
       }},
+
       { id: "djur", name: "Djur", words: {
-        easy:   [{word:"Hund",   hint:"Bästa vännen"},   {word:"Katt",  hint:"Spinner"}],
-        medium: [{word:"Uggla",  hint:"Nattaktiv"},      {word:"Säl",   hint:"Simhud"}],
-        hard:   [{word:"Okapi",  hint:"Släkting till giraff"}]
+        easy:   [
+          {word:"Hund",        hint:"Tam canid – vallning och vakthållning"},
+          {word:"Katt",        hint:"Nattaktiv jägare med morrhår"}
+        ],
+        medium: [
+          {word:"Uggla",       hint:"Tyst vingflykt, framåtriktade ögon"},
+          {word:"Säl",         hint:"Fenfötter, viloplatser på skär"}
+        ],
+        hard:   [
+          {word:"Okapi",       hint:"Zebrarandig släkting till giraff"},
+          {word:"Näbbdjur",    hint:"Äggläggande däggdjur med giftsporre"}
+        ]
       }},
+
       { id: "sport", name: "Sport", words: {
-        easy:   [{word:"Fotboll",hint:"11 vs 11"},       {word:"Tennis",hint:"Rack"}],
-        medium: [{word:"Handboll",hint:"6 meter"},       {word:"Orientering",hint:"Karta & kompass"}],
-        hard:   [{word:"Curling",hint:"Is och sten"}]
+        easy:   [
+          {word:"Fotboll",     hint:"Offside, hörna, elva mot elva"},
+          {word:"Tennis",      hint:"Serve, ess, tiebreak"}
+        ],
+        medium: [
+          {word:"Handboll",    hint:"Kantavslut och 6‑meterslinje"},
+          {word:"Orientering", hint:"Kontrollskärm och stämpling"}
+        ],
+        hard:   [
+          {word:"Curling",     hint:"Hus, hog line och sopning"},
+          {word:"Fäktning",    hint:"Parér, ripost, florett"}
+        ]
       }},
-      /* Dina kategorier */
-      { id: "fruits", name: "Fruits", words: {
-        easy:   [{word:"apple", hint:"Often red"}, {word:"banana", hint:"Yellow and curved"}],
-        medium: [{word:"cherry", hint:"Small & red"}, {word:"date", hint:"Sweet Middle Eastern fruit"}],
-        hard:   [{word:"elderberry", hint:"Used in syrups"}]
+
+      { id: "lander", name: "Länder", words: {
+        easy:   [
+          {word:"Brasilien",   hint:"Amazonas och kust mot Atlanten"},
+          {word:"Kanada",      hint:"Lönnlöv och stora provinser"}
+        ],
+        medium: [
+          {word:"Argentina",   hint:"Pampas, mate och tango"},
+          {word:"Egypten",     hint:"Nildeltat och hieroglyfer"}
+        ],
+        hard:   [
+          {word:"Danmark",     hint:"Jylland och ett pärlband av öar"},
+          {word:"Island",      hint:"Gejsrar, basalt och sagor"}
+        ]
       }},
-      { id: "animals", name: "Animals", words: {
-        easy:   [{word:"cat", hint:"Purrs"}, {word:"dog", hint:"Barks"}],
-        medium: [{word:"bear", hint:"Big and furry"}],
-        hard:   [{word:"elephant", hint:"Has a trunk"}]
+
+      { id: "farger", name: "Färger", words: {
+        easy:   [
+          {word:"Röd",         hint:"Additiv primär med hög värmeassociation"},
+          {word:"Blå",         hint:"Additiv primär, kall ton"}
+        ],
+        medium: [
+          {word:"Grön",        hint:"Klorofyllens signatur"},
+          {word:"Orange",      hint:"Mellanting av röd och gul"}
+        ],
+        hard:   [
+          {word:"Gul",         hint:"Subtraktiv primär i CMY"},
+          {word:"Purpur",      hint:"Antik färg från snäckdjur"}
+        ]
       }},
-      { id: "countries", name: "Countries", words: {
-        easy:   [{word:"Brazil", hint:"Carnival & football"}],
-        medium: [{word:"Canada", hint:"Maple leaf"}, {word:"Argentina", hint:"Tango"}],
-        hard:   [{word:"Denmark", hint:"Scandinavia"}, {word:"Egypt", hint:"Pyramids"}]
-      }},
-      { id: "colors", name: "Colors", words: {
-        easy:   [{word:"red", hint:"Stop sign"}, {word:"blue", hint:"Sky"}],
-        medium: [{word:"green", hint:"Grass"}],
-        hard:   [{word:"yellow", hint:"Sunlight"}, {word:"purple", hint:"Royal color"}]
-      }},
-      { id: "vehicles", name: "Vehicles", words: {
-        easy:   [{word:"car", hint:"Four wheels"}, {word:"bicycle", hint:"Two wheels"}],
-        medium: [{word:"boat", hint:"Floats"}, {word:"train", hint:"Rails"}],
-        hard:   [{word:"airplane", hint:"Flies"}]
+
+      { id: "fordon", name: "Fordon", words: {
+        easy:   [
+          {word:"Bil",         hint:"Kaross, chassi och körfält"},
+          {word:"Cykel",       hint:"Kedja, drev och ekrar"}
+        ],
+        medium: [
+          {word:"Tåg",         hint:"Räls, kontaktledning och vagnar"},
+          {word:"Båt",         hint:"Köl, akter och för"}
+        ],
+        hard:   [
+          {word:"Flygplan",    hint:"Tryckkabin och vingprofil"},
+          {word:"Luftskepp",   hint:"Bärgas blandas ej med flygplan"}
+        ]
       }},
     ];
 
@@ -157,17 +210,18 @@
     const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=randInt(i+1); [a[i],a[j]]=[a[j],a[i]]} return a; };
     const byId = id => document.getElementById(id);
     const fmt = n => String(n).padStart(2,"0");
-    function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+    const clamp = (n,min,max) => Math.max(min, Math.min(max,n));
 
     /*************** Spel‑state ***************/
     const state = {
-      phase: "playerCount", // ⬅ Starta direkt med val av antal spelare
-      players: Array.from({length:4}, (_,i)=>({id:i, name:`Spelare ${i+1}`, isImposter:false, score:0, vote:null})),
+      phase: "playerCount", // Starta med välj antal spelare
+      players: Array.from({length:4}, (_,i)=>({id:i, name:`Spelare ${i+1}`, isImposter:false, score:0})),
       nextId: 10,
       selectedCategories: [],
-      settings: { difficulty:"medium", imposterCount:1, hintsEnabled:true, timerMinutes:2, votingMode:"anonymous" },
+      settings: { difficulty:"medium", imposterCount:1, hintsEnabled:true },
       secretWord:"", secretCategory:"", secretHint:"",
-      roundNumber:1, currentRevealIndex:0, speakingOrder: null
+      roundNumber:1, currentRevealIndex:0, speakingOrder: null,
+      tallyTargetId: null // IRL vald spelare (eller null = ingen tydlig majoritet)
     };
 
     function maxImposters(){ return Math.min(2, Math.floor(state.players.length/3)); }
@@ -186,16 +240,15 @@
       const current = state.players.length;
       if(n > current){
         for(let i=current; i<n; i++){
-          state.players.push({id: state.nextId++, name:`Spelare ${i+1}`, isImposter:false, score:0, vote:null});
+          state.players.push({id: state.nextId++, name:`Spelare ${i+1}`, isImposter:false, score:0});
         }
       } else if(n < current){
-        state.players.splice(n); // kapa listan
+        state.players.splice(n);
       }
-      // justera impostor‑gräns om n minskar
       if(state.settings.imposterCount > maxImposters()){
         state.settings.imposterCount = maxImposters();
       }
-      render.players?.(); // om vi står på hem‑vyn
+      render.players?.();
     }
 
     function addPlayer(){ if(state.players.length>=10) return; setPlayerCount(state.players.length+1); render(); }
@@ -209,68 +262,66 @@
       const {word, category, hint} = getRandomWord(state.selectedCategories, state.settings.difficulty);
       state.secretWord = word; state.secretCategory = category; state.secretHint = hint;
 
-      let players = shuffle(state.players).map(p=>({...p, isImposter:false, vote:null}));
+      let players = shuffle(state.players).map(p=>({...p, isImposter:false}));
       for(let i=0; i<Math.min(state.settings.imposterCount, players.length); i++) players[i].isImposter=true;
       state.players = shuffle(players);
 
       state.currentRevealIndex = 0;
       state.speakingOrder = shuffle(state.players);
+      state.tallyTargetId = null;
       state.phase = "roleReveal";
       render();
     }
 
-    function proceedFromDiscussion(){
-      if(state.settings.votingMode==="live"){ applyScores(); state.phase="results"; render(); }
-      else { state.phase="voting"; render(); }
-    }
-
-    function castVote(voterId, targetId){
-      const p=state.players.find(x=>x.id===voterId);
-      if(p){ p.vote = targetId===""? null : Number(targetId); }
-      render.voting?.();
+    function endRound(selectedId){
+      // IRL röst: selectedId = spelare som fick flest pekningar (eller null)
+      state.tallyTargetId = selectedId===undefined ? null : selectedId;
+      applyScores();
+      state.phase = "results";
+      render();
     }
 
     function getResults(){
       const imposters = state.players.filter(p=>p.isImposter);
-      const counts = {};
-      state.players.forEach(p=>{ if(p.vote!=null) counts[p.vote]=(counts[p.vote]||0)+1; });
-      const max = Object.values(counts).length? Math.max(...Object.values(counts)) : 0;
-      const mostVotedIds = Object.entries(counts).filter(([,v])=>v===max).map(([k])=>Number(k));
-      const caughtImposters = imposters.filter(imp=>mostVotedIds.includes(imp.id));
-      const imposterWon = caughtImposters.length===0;
-      return { imposters, caughtImposters, imposterWon, counts };
+      const selectedId = state.tallyTargetId;
+      const selectedIsImposter = selectedId!=null && imposters.some(i=>i.id===selectedId);
+      const crewWon = selectedIsImposter;               // Om vald = impostor -> Crew vann
+      const imposterWon = !crewWon;                     // Annars vann impostors (även vid oavgjort)
+      const selectedName = selectedId==null ? "—" : (state.players.find(p=>p.id===selectedId)?.name ?? "—");
+      return { imposters, selectedId, selectedName, crewWon, imposterWon };
     }
 
     function applyScores(){
-      const {imposters, caughtImposters, imposterWon} = getResults();
+      const {crewWon} = getResults();
       state.players = state.players.map(p=>{
-        if(p.isImposter) return {...p, score: p.score + (imposterWon? 20 : 0)};
-        const votedImposter = imposters.some(imp=>imp.id===p.vote);
-        return {...p, score: p.score + (votedImposter? 10 : 0)};
+        if(p.isImposter){
+          return {...p, score: p.score + (crewWon ? 0 : 20)};
+        } else {
+          return {...p, score: p.score + (crewWon ? 10 : 0)};
+        }
       });
       state.roundNumber++;
     }
 
     function playAgain(){
-      state.players = state.players.map(p=>({...p, isImposter:false, vote:null}));
+      state.players = state.players.map(p=>({...p, isImposter:false}));
       state.currentRevealIndex = 0;
       state.phase = "settings";
       render();
     }
     function resetScores(){ state.players = state.players.map(p=>({...p, score:0})); state.roundNumber=1; render(); }
     function resetGame(){
-      state.phase="playerCount"; // tillbaka till snabbstart
-      state.players = Array.from({length:4}, (_,i)=>({id:i, name:`Spelare ${i+1}`, isImposter:false, score:0, vote:null}));
-      state.nextId=10; state.selectedCategories=[]; state.settings={difficulty:"medium", imposterCount:1, hintsEnabled:true, timerMinutes:2, votingMode:"anonymous"};
-      state.secretWord=""; state.secretCategory=""; state.secretHint=""; state.roundNumber=1; state.speakingOrder=null; state.currentRevealIndex=0;
+      state.phase="playerCount";
+      state.players = Array.from({length:4}, (_,i)=>({id:i, name:`Spelare ${i+1}`, isImposter:false, score:0}));
+      state.nextId=10; state.selectedCategories=[]; state.settings={difficulty:"medium", imposterCount:1, hintsEnabled:true};
+      state.secretWord=""; state.secretCategory=""; state.secretHint=""; state.roundNumber=1; state.speakingOrder=null; state.currentRevealIndex=0; state.tallyTargetId=null;
       render();
     }
 
-    /*************** Render‑funktioner ***************/
+    /*************** Render ***************/
     const app = byId("app");
     function html(strings,...vals){ return strings.map((s,i)=>s+(vals[i]??"")).join(""); }
 
-    /* NY: Första skärmen – välj antal spelare direkt */
     function renderPlayerCount(){
       const n = state.players.length;
       app.innerHTML = html`
@@ -312,19 +363,9 @@
 
       pRange.oninput = e => sync(e.target.value);
       pInput.oninput = e => sync(e.target.value);
-
-      app.querySelectorAll('[data-quick]').forEach(btn=>{
-        btn.onclick = ()=> sync(btn.dataset.quick);
-      });
-
-      // Enter för fortsättning
+      app.querySelectorAll('[data-quick]').forEach(btn=>btn.onclick = ()=> sync(btn.dataset.quick));
       pInput.addEventListener('keyup', (e)=>{ if(e.key==='Enter') byId('next').click(); });
-
-      byId("next").onclick = ()=>{
-        // Gå vidare till kategorier (eller "home" om du föredrar)
-        state.phase = "categories"; // byt till "home" om du vill namnge först
-        render();
-      };
+      byId("next").onclick = ()=>{ state.phase = "categories"; render(); };
     }
 
     function renderHome(){
@@ -387,9 +428,7 @@
           </div>
         </section>
       `;
-      app.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
-        cb.onchange = ()=>toggleCategory(cb.dataset.id);
-      });
+      app.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.onchange = ()=>toggleCategory(cb.dataset.id));
       byId("all").onclick = selectAllCategories;
       byId("none").onclick = deselectAllCategories;
       byId("back").onclick = ()=>{ state.phase="home"; render(); };
@@ -398,7 +437,6 @@
 
     function renderSettings(){
       const diff = ["easy","medium","hard"];
-      const timers = [0,1,2,3];
       const maxImp = maxImposters();
       if(state.settings.imposterCount>maxImp){ state.settings.imposterCount=maxImp; }
       app.innerHTML = html`
@@ -421,33 +459,17 @@
                 ${[1,2].map(n=>html`
                   <button class="btn ${state.settings.imposterCount===n?"":"outline"}" data-imp="${n}" ${n>maxImp?"disabled":""}>${n}</button>
                 `).join("")}
-                <span class="hint">Max beror på antal spelare (≈ 1 per 3).</span>
+                <span class="hint">Ca 1 impostor per 3 spelare (max 2).</span>
               </div>
             </div>
           </div>
 
-          <div class="row row-2">
-            <div class="card">
-              <div class="title">Röstning</div>
-              <div class="stack">
-                <button class="btn ${state.settings.votingMode==="anonymous"?"":"outline"}" data-vm="anonymous">In‑app</button>
-                <button class="btn ${state.settings.votingMode==="live"?"":"outline"}" data-vm="live">IRL</button>
-                <span class="hint">${state.settings.votingMode==="anonymous" ? "Var och en röstar i appen." : "Diskutera och peka IRL – appen visar bara resultat/poäng."}</span>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="title">Diskussionstimer</div>
-              <div class="stack">
-                ${timers.map(t=>html`
-                  <button class="btn ${state.settings.timerMinutes===t?"":"outline"}" data-t="${t}">${t===0?"Av":t+" min"}</button>
-                `).join("")}
-              </div>
-              <label class="stack" style="margin-top:.6rem">
-                <span class="pill">Hintar för impostor:</span>
-                <input type="checkbox" id="hints" ${state.settings.hintsEnabled?"checked":""} />
-              </label>
-            </div>
+          <div class="card">
+            <div class="title">Ledtrådar</div>
+            <label class="stack">
+              <span class="pill">Visa hint till spelare:</span>
+              <input type="checkbox" id="hints" ${state.settings.hintsEnabled?"checked":""} />
+            </label>
           </div>
 
           <div class="sep"></div>
@@ -459,14 +481,12 @@
       `;
       app.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{state.settings.difficulty=b.dataset.d; render();});
       app.querySelectorAll('[data-imp]').forEach(b=>b.onclick=()=>{state.settings.imposterCount=Number(b.dataset.imp); render();});
-      app.querySelectorAll('[data-vm]').forEach(b=>b.onclick=()=>{state.settings.votingMode=b.dataset.vm; render();});
-      app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{state.settings.timerMinutes=Number(b.dataset.t); render();});
       byId("hints").onchange = e=>{ state.settings.hintsEnabled = e.target.checked; };
       byId("back").onclick = ()=>{ state.phase="home"; render(); };
       byId("start").onclick = startRound;
     }
 
-    /* 🔹 Rollvisning med flip‑kort */
+    /* Rollvisning – flip-kort (utan överlapp) */
     function renderRoleReveal(){
       const p = state.players[state.currentRevealIndex];
       const last = state.currentRevealIndex === state.players.length - 1;
@@ -482,7 +502,7 @@
 
                 <!-- FRAMSIDA (baksidekortet) -->
                 <div class="flip-side flip-front">
-                  <h2>👤 ${p.name}</h2>
+                  <h2 class="role-title">👤 ${p.name}</h2>
                   <p class="hint">Tryck för att vända kortet</p>
                   <button class="btn flip-button" id="flipBtn">Vänd kortet</button>
                 </div>
@@ -491,20 +511,20 @@
                 <div class="flip-side flip-back">
                   ${p.isImposter
                     ? html`
-                        <h2 class="bad">Du är IMPOSTOR 👀</h2>
-                        <p class="hint">Försök bluffa!</p>
-                        ${state.settings.hintsEnabled 
-                          ? html`<p class="hint">Hint: <b>${state.secretHint}</b></p>` 
-                          : ""}
+                        <h2 class="bad role-title">Du är IMPOSTOR 👀</h2>
+                        ${state.settings.hintsEnabled ? html`<p class="hint">Hint: <b>${state.secretHint}</b></p>` : ""}
+                        <div class="secret-wrap">
+                          <span class="hint">Hemliga ordet (för crewmates):</span>
+                          <div class="tag">Du ser inte ordet – bluffa trovärdigt!</div>
+                        </div>
                       `
                     : html`
-                        <h2 class="ok">Du är CREWMATE ✅</h2>
-                        <p>Hemliga ordet:</p>
-                        <h3><b>${state.secretWord}</b></h3>
-                        <p class="hint">Kategori: ${state.secretCategory}</p>
-                        ${state.settings.hintsEnabled 
-                          ? html`<p class="hint">Hint: <b>${state.secretHint}</b></p>` 
-                          : ""}
+                        <h2 class="ok role-title">Du är CREWMATE ✅</h2>
+                        <div class="secret-wrap">
+                          <span class="hint">Hemliga ordet:</span>
+                          <div class="secret-word">${state.secretWord}</div>
+                          <span class="hint">Kategori: ${state.secretCategory}${state.settings.hintsEnabled ? " • Hint: <b>"+state.secretHint+"</b>" : ""}</span>
+                        </div>
                       `
                   }
                 </div>
@@ -521,7 +541,6 @@
         </section>
       `;
 
-      // Interaktion – tillåt både knapp och klick på kortet
       const card = byId("flipCard");
       const btn = byId("flipBtn");
       const next = byId("next");
@@ -532,12 +551,8 @@
           next.style.visibility = "visible";
         }
       };
-
       btn.onclick = flip;
-      card.onclick = (e) => {
-        // undvik dubbelklick från knappen (som ligger ovanpå)
-        if (e.target.id !== "flipBtn") flip();
-      };
+      card.onclick = (e) => { if (e.target.id !== "flipBtn") flip(); };
 
       next.onclick = () => {
         if (state.currentRevealIndex < state.players.length - 1) {
@@ -551,100 +566,80 @@
     }
 
     function renderDiscussion(){
-      const totalSeconds = (state.settings.timerMinutes||0)*60;
       app.innerHTML = html`
         <section class="card grid">
           <div class="title">💬 Diskussion</div>
-          <p class="hint">Varje spelare säger ett ord som anspelar på det hemliga ordet. Impostor bluffar.</p>
-
-          ${totalSeconds>0 ? html`
-            <div class="center"><div class="timer" id="t">--:--</div></div>
-          ` : html`<p class="tag">Timer: Av</p>`}
+          <p class="hint">Varje spelare säger ett ord som anspelar på det hemliga ordet. Impostor försöker låta trovärdig utan att veta ordet.</p>
 
           <h3>Ordning att tala:</h3>
-          <ol id="order" class="grid" style="padding-left:1.2rem">
+          <ol class="grid" style="padding-left:1.2rem">
             ${state.speakingOrder.map((p,i)=>html`<li>#${i+1} – ${p.name}</li>`).join("")}
           </ol>
 
           <div class="sep"></div>
           <div class="stack">
-            ${state.settings.votingMode==="live"
-                ? html`<button class="btn" id="toResults">Visa resultat</button>
-                       <span class="hint">Rösta IRL genom att peka – appen beräknar bara resultat/poäng.</span>`
-                : html`<button class="btn" id="toVoting">Gå till röstning</button>`}
+            <button class="btn" id="toTally">Räkna röster (IRL)</button>
+            <span class="hint">Låt alla peka samtidigt. Välj sedan vem som fick flest röster.</span>
           </div>
         </section>
       `;
-
-      if(totalSeconds>0){
-        let left = totalSeconds;
-        const el=byId("t");
-        el.textContent = `${fmt(Math.floor(left/60))}:${fmt(left%60)}`;
-        const iv=setInterval(()=>{
-          left--;
-          el.textContent = `${fmt(Math.floor(left/60))}:${fmt(left%60)}`;
-          if(left<=0){ clearInterval(iv); el.classList.add("bad"); el.textContent = "00:00"; }
-        }, 1000);
-      }
-      if(state.settings.votingMode==="live") byId("toResults").onclick = ()=>{ applyScores(); state.phase="results"; render(); };
-      else byId("toVoting").onclick = ()=>{ state.phase="voting"; render(); };
+      byId("toTally").onclick = ()=>{ state.phase="tally"; render(); };
     }
 
-    function renderVoting(){
+    /* Rösträkning (IRL) – välj vem som blev utpekad */
+    function renderTally(){
       app.innerHTML = html`
         <section class="card grid">
-          <div class="title">🗳️ Röstning (anonym i appen)</div>
-          <table class="votes">
-            <thead><tr><th>Väljare</th><th>Röstar på</th></tr></thead>
-            <tbody id="voteRows">
-              ${state.players.map(voter=>html`
-                <tr>
-                  <td>${voter.name}</td>
-                  <td>
-                    <select data-voter="${voter.id}">
-                      <option value="">— välj —</option>
-                      ${state.players.map(t=>html`
-                        <option value="${t.id}" ${voter.vote===t.id?"selected":""} ${t.id===voter.id?"disabled":""}>${t.name}</option>
-                      `).join("")}
-                    </select>
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
+          <div class="title">🗳️ Rösträkning (IRL)</div>
+          <p class="hint">Vem pekade flest på? Välj person nedan. Om oavgjort eller otydligt – välj "Ingen tydlig majoritet".</p>
+
+          <div class="pick-grid">
+            ${state.players.map(p=>html`
+              <div class="pick" data-pick="${p.id}">
+                <div class="stack" style="align-items:center;justify-content:space-between">
+                  <span class="pill">${p.isImposter ? "🕵️‍♂️" : "🧑‍🚀"}</span>
+                  <b>${p.name}</b>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+
           <div class="sep"></div>
           <div class="stack">
-            <button class="btn" id="finish" disabled>Visa resultat</button>
+            <button class="btn outline" id="none">Ingen tydlig majoritet</button>
+            <button class="btn" id="calc">Visa resultat</button>
           </div>
         </section>
       `;
-      app.querySelectorAll('select[data-voter]').forEach(sel=>{
-        sel.onchange = ()=>castVote(Number(sel.dataset.voter), sel.value);
+
+      let selected = null;
+      app.querySelectorAll('[data-pick]').forEach(card=>{
+        card.onclick = ()=>{
+          app.querySelectorAll('[data-pick]').forEach(c=>c.style.borderColor="rgba(255,255,255,.15)");
+          card.style.borderColor="var(--accent2)";
+          selected = Number(card.dataset.pick);
+        };
       });
-      render.voting = ()=>{
-        const allVoted = state.players.every(p=>p.vote!=null);
-        byId("finish").disabled = !allVoted;
-      };
-      byId("finish").onclick = ()=>{ applyScores(); state.phase="results"; render(); };
-      render.voting();
+
+      byId("none").onclick = ()=>{ endRound(null); };
+      byId("calc").onclick = ()=>{ endRound(selected); };
     }
 
     function renderResults(){
-      const {imposters, caughtImposters, imposterWon, counts} = getResults();
-      const nameById = id => state.players.find(p=>p.id===id)?.name ?? ("#"+id);
+      const {imposters, selectedId, selectedName, crewWon, imposterWon} = getResults();
       app.innerHTML = html`
         <section class="card grid">
           <div class="title">🏁 Resultat – Runda ${state.roundNumber-1}</div>
           <p><b>Impostors:</b> ${imposters.map(p=>p.name).join(", ") || "—"}</p>
+          <p><b>Utpekad spelare:</b> ${selectedName}</p>
           <p class="${imposterWon?"bad":"ok"}"><b>${imposterWon? "Impostors vann!" : "Crew vann!"}</b></p>
 
-          <details class="card"><summary class="small">Visa röster</summary>
-            <ul>
-              ${Object.keys(counts).length
-                ? Object.entries(counts).map(([id,c])=>html`<li>${nameById(Number(id))}: ${c} röster</li>`).join("")
-                : "<li>Ingen röstade.</li>"}
-            </ul>
-          </details>
+          <div class="card">
+            <div class="title">Hemligt ord</div>
+            <p><b>Ord:</b> ${state.secretWord}</p>
+            <p><b>Kategori:</b> ${state.secretCategory}</p>
+            <p class="hint"><b>Ledtråd:</b> ${state.secretHint || "—"}</p>
+          </div>
 
           <div class="sep"></div>
           <h3>Poängställning</h3>
@@ -678,7 +673,7 @@
       if(state.phase==="settings") return renderSettings();
       if(state.phase==="roleReveal") return renderRoleReveal();
       if(state.phase==="discussion") return renderDiscussion();
-      if(state.phase==="voting") return renderVoting();
+      if(state.phase==="tally") return renderTally();
       if(state.phase==="results") return renderResults();
     }
     render(); // start
