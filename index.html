@@ -29,8 +29,11 @@
     .btn.outline{background:transparent;border:1px solid rgba(255,255,255,.18)}
     .grid{display:grid;gap:12px}
     .players li{display:flex;gap:8px;align-items:center;background:var(--panel);border-radius:12px;padding:8px 10px}
-    input[type="text"], select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
-       background:#0e0f1a;color:#fff}
+    input[type="text"], select, input[type="number"], input[type="range"]{
+      width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+      background:#0e0f1a;color:#fff
+    }
+    input[type="range"]{padding:0}
     .hint{font-size:.94rem;opacity:.82}
     .pill{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .6rem;border-radius:999px;background:#0e0f1a;border:1px solid rgba(255,255,255,.12)}
     .tag{background:#0e0f1a;border:1px dashed rgba(255,255,255,.18);padding:.35rem .6rem;border-radius:999px;opacity:.85}
@@ -49,6 +52,8 @@
     .votes{border-collapse:collapse;width:100%}
     .votes th,.votes td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px;text-align:left}
     .right{margin-left:auto}
+    .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:8px}
+    .pill-lg{font-size:1.05rem;padding:.5rem .8rem}
   </style>
 </head>
 <body>
@@ -63,7 +68,7 @@
 
   <script>
     /***************
-     * LITEN ORDLISTA (utökad med dina kategorier)
+     * KATEGORIER (inkl. dina)
      ***************/
     const CATEGORIES = [
       { id: "frukt", name: "Frukt", words: {
@@ -81,8 +86,7 @@
         medium: [{word:"Handboll",hint:"6 meter"},       {word:"Orientering",hint:"Karta & kompass"}],
         hard:   [{word:"Curling",hint:"Is och sten"}]
       }},
-
-      /* ✨ DINA NYA KATEGORIER ✨ */
+      /* Dina kategorier */
       { id: "fruits", name: "Fruits", words: {
         easy:   [{word:"apple", hint:"Often red"}, {word:"banana", hint:"Yellow and curved"}],
         medium: [{word:"cherry", hint:"Small & red"}, {word:"date", hint:"Sweet Middle Eastern fruit"}],
@@ -96,7 +100,7 @@
       { id: "countries", name: "Countries", words: {
         easy:   [{word:"Brazil", hint:"Carnival & football"}],
         medium: [{word:"Canada", hint:"Maple leaf"}, {word:"Argentina", hint:"Tango"}],
-        hard:   [{word:"Denmark", hint:"Small Scandinavian country"}, {word:"Egypt", hint:"Pyramids"}]
+        hard:   [{word:"Denmark", hint:"Scandinavia"}, {word:"Egypt", hint:"Pyramids"}]
       }},
       { id: "colors", name: "Colors", words: {
         easy:   [{word:"red", hint:"Stop sign"}, {word:"blue", hint:"Sky"}],
@@ -115,10 +119,11 @@
     const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=randInt(i+1); [a[i],a[j]]=[a[j],a[i]]} return a; };
     const byId = id => document.getElementById(id);
     const fmt = n => String(n).padStart(2,"0");
+    function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
 
     /*************** Spel‑state ***************/
     const state = {
-      phase: "home",
+      phase: "playerCount", // ⬅ Starta direkt med val av antal spelare
       players: Array.from({length:4}, (_,i)=>({id:i, name:`Spelare ${i+1}`, isImposter:false, score:0, vote:null})),
       nextId: 10,
       selectedCategories: [],
@@ -138,24 +143,38 @@
     }
 
     /*************** Tillståndsändringar ***************/
-    function addPlayer(){ if(state.players.length>=10) return; state.players.push({id:state.nextId++, name:`Spelare ${state.players.length+1}`, isImposter:false, score:0, vote:null}); render(); }
-    function removePlayer(){ if(state.players.length<=3) return; state.players.pop(); if(state.settings.imposterCount>maxImposters()) state.settings.imposterCount=maxImposters(); render(); }
+    function setPlayerCount(n){
+      n = clamp(Math.round(Number(n)||4), 3, 10);
+      const current = state.players.length;
+      if(n > current){
+        for(let i=current; i<n; i++){
+          state.players.push({id: state.nextId++, name:`Spelare ${i+1}`, isImposter:false, score:0, vote:null});
+        }
+      } else if(n < current){
+        state.players.splice(n); // kapa listan
+      }
+      // justera impostor‑gräns om n minskar
+      if(state.settings.imposterCount > maxImposters()){
+        state.settings.imposterCount = maxImposters();
+      }
+      render.players?.(); // om vi står på hem‑vyn
+    }
+
+    function addPlayer(){ if(state.players.length>=10) return; setPlayerCount(state.players.length+1); render(); }
+    function removePlayer(){ if(state.players.length<=3) return; setPlayerCount(state.players.length-1); render(); }
     function updatePlayerName(id, name){ const p=state.players.find(p=>p.id===id); if(p){p.name=name; render.players?.()} }
     function toggleCategory(id){ const s=state.selectedCategories; const i=s.indexOf(id); if(i>=0) s.splice(i,1); else s.push(id); render(); }
     function selectAllCategories(){ state.selectedCategories = CATEGORIES.map(c=>c.id); render(); }
     function deselectAllCategories(){ state.selectedCategories = []; render(); }
 
     function startRound(){
-      // hemligt ord
       const {word, category, hint} = getRandomWord(state.selectedCategories, state.settings.difficulty);
       state.secretWord = word; state.secretCategory = category; state.secretHint = hint;
 
-      // impostors
       let players = shuffle(state.players).map(p=>({...p, isImposter:false, vote:null}));
       for(let i=0; i<Math.min(state.settings.imposterCount, players.length); i++) players[i].isImposter=true;
       state.players = shuffle(players);
 
-      // talaordning & reveal
       state.currentRevealIndex = 0;
       state.speakingOrder = shuffle(state.players);
       state.phase = "roleReveal";
@@ -202,25 +221,82 @@
     }
     function resetScores(){ state.players = state.players.map(p=>({...p, score:0})); state.roundNumber=1; render(); }
     function resetGame(){
-      state.phase="home";
+      state.phase="playerCount"; // tillbaka till snabbstart
       state.players = Array.from({length:4}, (_,i)=>({id:i, name:`Spelare ${i+1}`, isImposter:false, score:0, vote:null}));
       state.nextId=10; state.selectedCategories=[]; state.settings={difficulty:"medium", imposterCount:1, hintsEnabled:true, timerMinutes:2, votingMode:"anonymous"};
       state.secretWord=""; state.secretCategory=""; state.secretHint=""; state.roundNumber=1; state.speakingOrder=null; state.currentRevealIndex=0;
       render();
     }
 
-    /*************** Render‑funktioner (enkel SPA) ***************/
+    /*************** Render‑funktioner ***************/
     const app = byId("app");
     function html(strings,...vals){ return strings.map((s,i)=>s+(vals[i]??"")).join(""); }
+
+    /* NY: Första skärmen – välj antal spelare direkt */
+    function renderPlayerCount(){
+      const n = state.players.length;
+      app.innerHTML = html`
+        <section class="card grid" style="max-width:760px;margin-inline:auto">
+          <div class="title">👥 Välj antal spelare</div>
+          <p class="hint">Välj hur många som ska vara med (3–10). Du kan byta senare.</p>
+
+          <div class="grid">
+            <div class="stack" style="align-items:center">
+              <span class="pill pill-lg">Antal: <b id="pcount">${n}</b></span>
+              <input type="range" id="pRange" min="3" max="10" step="1" value="${n}" />
+              <input type="number" id="pInput" min="3" max="10" value="${n}" />
+            </div>
+
+            <div class="choices">
+              ${[3,4,5,6,7,8,9,10].map(x=>html`
+                <button class="btn outline" data-quick="${x}">${x}</button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="sep"></div>
+          <div class="stack">
+            <button class="btn" id="next">Fortsätt</button>
+            <span class="tag">Tips: Du kan namnge spelare på nästa skärm.</span>
+          </div>
+        </section>
+      `;
+      const pCount = byId("pcount");
+      const pRange = byId("pRange");
+      const pInput = byId("pInput");
+
+      const sync = (val)=>{
+        setPlayerCount(val);
+        pCount.textContent = state.players.length;
+        pRange.value = state.players.length;
+        pInput.value = state.players.length;
+      };
+
+      pRange.oninput = e => sync(e.target.value);
+      pInput.oninput = e => sync(e.target.value);
+
+      app.querySelectorAll('[data-quick]').forEach(btn=>{
+        btn.onclick = ()=> sync(btn.dataset.quick);
+      });
+
+      // Enter för fortsättning
+      pInput.addEventListener('keyup', (e)=>{ if(e.key==='Enter') byId('next').click(); });
+
+      byId("next").onclick = ()=>{
+        // Gå vidare till kategorier (eller "home" om du föredrar)
+        state.phase = "categories"; // byt till "home" om du vill namnge först
+        render();
+      };
+    }
 
     function renderHome(){
       app.innerHTML = html`
         <section class="card grid">
           <div class="title">👥 Spelare</div>
           <ul class="grid players" id="players">
-            ${state.players.map(p=>html`
+            ${state.players.map((p,i)=>html`
               <li>
-                <span class="pill">#${p.id}</span>
+                <span class="pill">#${i+1}</span>
                 <input type="text" value="${p.name}" aria-label="Namn" data-id="${p.id}">
                 <span class="right tag">Poäng: ${p.score}</span>
               </li>
@@ -238,18 +314,15 @@
           </div>
         </section>
       `;
-      // events
       byId("add").onclick = addPlayer;
       byId("remove").onclick = removePlayer;
       byId("toCats").onclick = ()=>{ state.phase="categories"; render(); };
       byId("toSettings").onclick = ()=>{ state.phase="settings"; render(); };
-      // namn
       app.querySelectorAll('input[type="text"]').forEach(inp=>{
         inp.addEventListener("input", e=>updatePlayerName(Number(inp.dataset.id), inp.value));
       });
-      // lås imposterCount om för många
       if(state.settings.imposterCount>maxImposters()){ state.settings.imposterCount=maxImposters(); }
-      render.players = ()=>{ /* uppdatera bara namnraden vid skrivning (lätt) */ };
+      render.players = ()=>{};
     }
 
     function renderCategories(){
@@ -346,7 +419,6 @@
           </div>
         </section>
       `;
-      // events
       app.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{state.settings.difficulty=b.dataset.d; render();});
       app.querySelectorAll('[data-imp]').forEach(b=>b.onclick=()=>{state.settings.imposterCount=Number(b.dataset.imp); render();});
       app.querySelectorAll('[data-vm]').forEach(b=>b.onclick=()=>{state.settings.votingMode=b.dataset.vm; render();});
@@ -378,7 +450,7 @@
             </div>
           </div>
         </section>
-      ];
+      `;
       byId("next").onclick = ()=>{
         if(state.currentRevealIndex < state.players.length-1){ state.currentRevealIndex++; render(); }
         else { state.phase="discussion"; render(); }
@@ -411,11 +483,10 @@
         </section>
       `;
 
-      // timer
       if(totalSeconds>0){
         let left = totalSeconds;
         const el=byId("t");
-        el.textContent = `${fmt(Math.floor(left/60))}:${fmt(left%60)}`; // set initial value
+        el.textContent = `${fmt(Math.floor(left/60))}:${fmt(left%60)}`;
         const iv=setInterval(()=>{
           left--;
           el.textContent = `${fmt(Math.floor(left/60))}:${fmt(left%60)}`;
@@ -485,7 +556,7 @@
           <div class="sep"></div>
           <h3>Poängställning</h3>
           <ul class="players">
-            ${state.players.map(p=>html`
+            ${state.players.map((p,i)=>html`
               <li>
                 <span class="pill">${p.isImposter? "🕵️‍♂️" : "🧑‍🚀"}</span>
                 <b>${p.name}</b>
@@ -508,6 +579,7 @@
     }
 
     function render(){
+      if(state.phase==="playerCount") return renderPlayerCount();
       if(state.phase==="home") return renderHome();
       if(state.phase==="categories") return renderCategories();
       if(state.phase==="settings") return renderSettings();
