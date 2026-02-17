@@ -54,6 +54,44 @@
     .right{margin-left:auto}
     .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:8px}
     .pill-lg{font-size:1.05rem;padding:.5rem .8rem}
+
+    /* 🔹 Flip card – stilar (globalt) */
+    .flip-container {
+      perspective: 1200px;
+      width: 100%;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+    .flip-card {
+      width: 100%;
+      min-height: 220px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.7s ease;
+      border-radius: 14px;
+    }
+    .flip-card.flipped { transform: rotateY(180deg); }
+    .flip-side {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .flip-front {
+      background: #0e0f1a;
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .flip-back {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.18);
+      transform: rotateY(180deg);
+    }
+    .flip-button { margin-top: 14px; }
   </style>
 </head>
 <body>
@@ -428,32 +466,87 @@
       byId("start").onclick = startRound;
     }
 
+    /* 🔹 Rollvisning med flip‑kort */
     function renderRoleReveal(){
       const p = state.players[state.currentRevealIndex];
-      const last = state.currentRevealIndex === state.players.length-1;
+      const last = state.currentRevealIndex === state.players.length - 1;
+
       app.innerHTML = html`
         <section class="card grid center" style="min-height:60vh;text-align:center">
           <div>
             <div class="title">📣 Rollvisning</div>
             <p class="small">Ge enheten till <b>${p.name}</b>. Andra tittar bort.</p>
-            <div class="card" style="margin:12px auto;max-width:560px">
-              ${p.isImposter
-                ? html`<h2 class="bad">Du är IMPOSTOR 👀</h2>
-                       <p class="hint">Försök bluffa! ${state.settings.hintsEnabled? "Hint (till hjälp): <b>"+state.secretHint+"</b>":""}</p>`
-                : html`<h2 class="ok">Du är CREWMATE ✅</h2>
-                       <p>Hemliga ordet: <b>${state.secretWord}</b></p>
-                       <p class="hint">Kategori: ${state.secretCategory}${state.settings.hintsEnabled? " • Hint: <b>"+state.secretHint+"</b>":""}</p>`
-              }
+
+            <div class="flip-container">
+              <div class="flip-card" id="flipCard">
+
+                <!-- FRAMSIDA (baksidekortet) -->
+                <div class="flip-side flip-front">
+                  <h2>👤 ${p.name}</h2>
+                  <p class="hint">Tryck för att vända kortet</p>
+                  <button class="btn flip-button" id="flipBtn">Vänd kortet</button>
+                </div>
+
+                <!-- BAKSIDA (faktisk roll + ord) -->
+                <div class="flip-side flip-back">
+                  ${p.isImposter
+                    ? html`
+                        <h2 class="bad">Du är IMPOSTOR 👀</h2>
+                        <p class="hint">Försök bluffa!</p>
+                        ${state.settings.hintsEnabled 
+                          ? html`<p class="hint">Hint: <b>${state.secretHint}</b></p>` 
+                          : ""}
+                      `
+                    : html`
+                        <h2 class="ok">Du är CREWMATE ✅</h2>
+                        <p>Hemliga ordet:</p>
+                        <h3><b>${state.secretWord}</b></h3>
+                        <p class="hint">Kategori: ${state.secretCategory}</p>
+                        ${state.settings.hintsEnabled 
+                          ? html`<p class="hint">Hint: <b>${state.secretHint}</b></p>` 
+                          : ""}
+                      `
+                  }
+                </div>
+
+              </div>
             </div>
-            <div class="stack center">
-              <button class="btn" id="next">${last? "Starta diskussion →" : "Jag är klar – nästa spelare →"}</button>
+
+            <div class="stack center" style="margin-top:20px">
+              <button class="btn" id="next" style="visibility:hidden;">
+                ${last ? "Starta diskussion →" : "Nästa spelare →"}
+              </button>
             </div>
           </div>
         </section>
       `;
-      byId("next").onclick = ()=>{
-        if(state.currentRevealIndex < state.players.length-1){ state.currentRevealIndex++; render(); }
-        else { state.phase="discussion"; render(); }
+
+      // Interaktion – tillåt både knapp och klick på kortet
+      const card = byId("flipCard");
+      const btn = byId("flipBtn");
+      const next = byId("next");
+
+      const flip = () => {
+        if(!card.classList.contains("flipped")){
+          card.classList.add("flipped");
+          next.style.visibility = "visible";
+        }
+      };
+
+      btn.onclick = flip;
+      card.onclick = (e) => {
+        // undvik dubbelklick från knappen (som ligger ovanpå)
+        if (e.target.id !== "flipBtn") flip();
+      };
+
+      next.onclick = () => {
+        if (state.currentRevealIndex < state.players.length - 1) {
+          state.currentRevealIndex++;
+          render();
+        } else {
+          state.phase = "discussion";
+          render();
+        }
       };
     }
 
