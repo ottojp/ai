@@ -63,7 +63,7 @@
 
   <script>
     /***************
-     * LITEN ORDLISTA (byt gärna till dina egna)
+     * LITEN ORDLISTA (utökad med dina kategorier)
      ***************/
     const CATEGORIES = [
       { id: "frukt", name: "Frukt", words: {
@@ -80,7 +80,34 @@
         easy:   [{word:"Fotboll",hint:"11 vs 11"},       {word:"Tennis",hint:"Rack"}],
         medium: [{word:"Handboll",hint:"6 meter"},       {word:"Orientering",hint:"Karta & kompass"}],
         hard:   [{word:"Curling",hint:"Is och sten"}]
-      }}
+      }},
+
+      /* ✨ DINA NYA KATEGORIER ✨ */
+      { id: "fruits", name: "Fruits", words: {
+        easy:   [{word:"apple", hint:"Often red"}, {word:"banana", hint:"Yellow and curved"}],
+        medium: [{word:"cherry", hint:"Small & red"}, {word:"date", hint:"Sweet Middle Eastern fruit"}],
+        hard:   [{word:"elderberry", hint:"Used in syrups"}]
+      }},
+      { id: "animals", name: "Animals", words: {
+        easy:   [{word:"cat", hint:"Purrs"}, {word:"dog", hint:"Barks"}],
+        medium: [{word:"bear", hint:"Big and furry"}],
+        hard:   [{word:"elephant", hint:"Has a trunk"}]
+      }},
+      { id: "countries", name: "Countries", words: {
+        easy:   [{word:"Brazil", hint:"Carnival & football"}],
+        medium: [{word:"Canada", hint:"Maple leaf"}, {word:"Argentina", hint:"Tango"}],
+        hard:   [{word:"Denmark", hint:"Small Scandinavian country"}, {word:"Egypt", hint:"Pyramids"}]
+      }},
+      { id: "colors", name: "Colors", words: {
+        easy:   [{word:"red", hint:"Stop sign"}, {word:"blue", hint:"Sky"}],
+        medium: [{word:"green", hint:"Grass"}],
+        hard:   [{word:"yellow", hint:"Sunlight"}, {word:"purple", hint:"Royal color"}]
+      }},
+      { id: "vehicles", name: "Vehicles", words: {
+        easy:   [{word:"car", hint:"Four wheels"}, {word:"bicycle", hint:"Two wheels"}],
+        medium: [{word:"boat", hint:"Floats"}, {word:"train", hint:"Rails"}],
+        hard:   [{word:"airplane", hint:"Flies"}]
+      }},
     ];
 
     /*************** Hjälpmedel ***************/
@@ -351,7 +378,7 @@
             </div>
           </div>
         </section>
-      `;
+      ];
       byId("next").onclick = ()=>{
         if(state.currentRevealIndex < state.players.length-1){ state.currentRevealIndex++; render(); }
         else { state.phase="discussion"; render(); }
@@ -388,9 +415,11 @@
       if(totalSeconds>0){
         let left = totalSeconds;
         const el=byId("t");
+        el.textContent = `${fmt(Math.floor(left/60))}:${fmt(left%60)}`; // set initial value
         const iv=setInterval(()=>{
+          left--;
           el.textContent = `${fmt(Math.floor(left/60))}:${fmt(left%60)}`;
-          if(left--<=0){ clearInterval(iv); el.classList.add("bad"); }
+          if(left<=0){ clearInterval(iv); el.classList.add("bad"); el.textContent = "00:00"; }
         }, 1000);
       }
       if(state.settings.votingMode==="live") byId("toResults").onclick = ()=>{ applyScores(); state.phase="results"; render(); };
