@@ -74,6 +74,7 @@
       justify-content: center;
       align-items: center;
       gap: .4rem;
+      text-align:center;
     }
     .flip-front {
       background: #0e0f1a;
@@ -85,14 +86,10 @@
       transform: rotateY(180deg);
     }
     .role-title { margin: 0 0 .4rem 0; }
-    .secret-wrap {
-      margin-top: .6rem;
-      text-align: center;
-      display: grid;
-      gap: .25rem;
-    }
+    .secret-wrap { margin-top: .6rem; display: grid; gap: .25rem; }
     .secret-word { font-size: 1.35rem; font-weight: 800; letter-spacing: .3px; }
     .flip-button { margin-top: 10px; }
+
     /* Rösträkning – klickbara kort */
     .pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
     .pick{background:var(--panel);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:14px;cursor:pointer;transition:.18s}
@@ -111,96 +108,232 @@
 
   <script>
     /***************
-     * KATEGORIER – Svenska med svårare ledtrådar
+     * KATEGORIER – Svenska med korta ledtrådar (svårare)
      ***************/
     const CATEGORIES = [
       { id: "frukt", name: "Frukt", words: {
         easy:   [
-          {word:"Äpple",       hint:"Kärnhus, ofta vaxblankt skal"},
-          {word:"Banan",       hint:"Egentligen ett bär från en ört"}
+          {word:"Äpple",   hint:"Sött, rött"},
+          {word:"Banan",   hint:"Gult, böjt"}
         ],
         medium: [
-          {word:"Apelsin",     hint:"Citrus med bittert skal och klyftor"},
-          {word:"Kiwi",        hint:"Grönt fruktkött med svarta frön"}
+          {word:"Apelsin", hint:"Citrus"},
+          {word:"Kiwi",    hint:"Grönt fruktkött"}
         ],
         hard:   [
-          {word:"Granatäpple", hint:"Arillus runt massor av frön"},
-          {word:"Kvitten",     hint:"Stenhård, doftande – blir ätlig efter kokning"}
+          {word:"Granatäpple", hint:"Många frön"},
+          {word:"Kvitten",     hint:"Hårt fruktkött"}
         ]
       }},
 
       { id: "djur", name: "Djur", words: {
         easy:   [
-          {word:"Hund",        hint:"Tam canid – vallning och vakthållning"},
-          {word:"Katt",        hint:"Nattaktiv jägare med morrhår"}
+          {word:"Hund",   hint:"Tamhund"},
+          {word:"Katt",   hint:"Spinner"}
         ],
         medium: [
-          {word:"Uggla",       hint:"Tyst vingflykt, framåtriktade ögon"},
-          {word:"Säl",         hint:"Fenfötter, viloplatser på skär"}
+          {word:"Uggla",  hint:"Nattdjur"},
+          {word:"Säl",    hint:"Simfötter"}
         ],
         hard:   [
-          {word:"Okapi",       hint:"Zebrarandig släkting till giraff"},
-          {word:"Näbbdjur",    hint:"Äggläggande däggdjur med giftsporre"}
+          {word:"Okapi",     hint:"Randiga ben"},
+          {word:"Näbbdjur",  hint:"Lägger ägg"}
         ]
       }},
 
       { id: "sport", name: "Sport", words: {
         easy:   [
-          {word:"Fotboll",     hint:"Offside, hörna, elva mot elva"},
-          {word:"Tennis",      hint:"Serve, ess, tiebreak"}
+          {word:"Fotboll",  hint:"Gräsplan"},
+          {word:"Tennis",   hint:"Racket"}
         ],
         medium: [
-          {word:"Handboll",    hint:"Kantavslut och 6‑meterslinje"},
-          {word:"Orientering", hint:"Kontrollskärm och stämpling"}
+          {word:"Handboll", hint:"Inomhus"},
+          {word:"Boxning",  hint:"Rond"}
         ],
         hard:   [
-          {word:"Curling",     hint:"Hus, hog line och sopning"},
-          {word:"Fäktning",    hint:"Parér, ripost, florett"}
+          {word:"Curling",  hint:"Issten"},
+          {word:"Fäktning", hint:"Värja"}
         ]
       }},
 
       { id: "lander", name: "Länder", words: {
-        easy:   [
-          {word:"Brasilien",   hint:"Amazonas och kust mot Atlanten"},
-          {word:"Kanada",      hint:"Lönnlöv och stora provinser"}
+        easy: [
+          {word:"Sverige",   hint:"Norden"},
+          {word:"Norge",     hint:"Olja"}
         ],
         medium: [
-          {word:"Argentina",   hint:"Pampas, mate och tango"},
-          {word:"Egypten",     hint:"Nildeltat och hieroglyfer"}
+          {word:"Japan",     hint:"Örike"},
+          {word:"Egypten",   hint:"Pyramider"}
         ],
-        hard:   [
-          {word:"Danmark",     hint:"Jylland och ett pärlband av öar"},
-          {word:"Island",      hint:"Gejsrar, basalt och sagor"}
+        hard: [
+          {word:"Mongoliet", hint:"Stäpp"},
+          {word:"Chile",     hint:"Långt land"}
         ]
       }},
 
       { id: "farger", name: "Färger", words: {
-        easy:   [
-          {word:"Röd",         hint:"Additiv primär med hög värmeassociation"},
-          {word:"Blå",         hint:"Additiv primär, kall ton"}
+        easy: [
+          {word:"Röd",      hint:"Signal"},
+          {word:"Blå",      hint:"Himmel"}
         ],
         medium: [
-          {word:"Grön",        hint:"Klorofyllens signatur"},
-          {word:"Orange",      hint:"Mellanting av röd och gul"}
+          {word:"Grön",     hint:"Natur"},
+          {word:"Orange",   hint:"Citrus"}
         ],
-        hard:   [
-          {word:"Gul",         hint:"Subtraktiv primär i CMY"},
-          {word:"Purpur",      hint:"Antik färg från snäckdjur"}
+        hard: [
+          {word:"Purpur",   hint:"Kunglig"},
+          {word:"Turkos",   hint:"Blågrön"}
         ]
       }},
 
       { id: "fordon", name: "Fordon", words: {
-        easy:   [
-          {word:"Bil",         hint:"Kaross, chassi och körfält"},
-          {word:"Cykel",       hint:"Kedja, drev och ekrar"}
+        easy: [
+          {word:"Bil",      hint:"Fyra hjul"},
+          {word:"Cykel",    hint:"Två hjul"}
         ],
         medium: [
-          {word:"Tåg",         hint:"Räls, kontaktledning och vagnar"},
-          {word:"Båt",         hint:"Köl, akter och för"}
+          {word:"Tåg",      hint:"Räls"},
+          {word:"Båt",      hint:"Vatten"}
         ],
-        hard:   [
-          {word:"Flygplan",    hint:"Tryckkabin och vingprofil"},
-          {word:"Luftskepp",   hint:"Bärgas blandas ej med flygplan"}
+        hard: [
+          {word:"Helikopter", hint:"Rotor"},
+          {word:"Motorcykel", hint:"Snabb"}
+        ]
+      }},
+
+      { id: "mat", name: "Mat", words: {
+        easy: [
+          {word:"Pizza",    hint:"Ost"},
+          {word:"Pasta",    hint:"Italien"}
+        ],
+        medium: [
+          {word:"Sushi",    hint:"Ris"},
+          {word:"Falafel",  hint:"Kikärt"}
+        ],
+        hard: [
+          {word:"Bouillabaisse", hint:"Fisksoppa"},
+          {word:"Ratatouille",    hint:"Gryta"}
+        ]
+      }},
+
+      { id: "yrken", name: "Yrken", words: {
+        easy: [
+          {word:"Lärare",   hint:"Skola"},
+          {word:"Polis",    hint:"Skydd"}
+        ],
+        medium: [
+          {word:"Elektriker", hint:"Kablar"},
+          {word:"Pilot",      hint:"Cockpit"}
+        ],
+        hard: [
+          {word:"Arkitekt",   hint:"Ritningar"},
+          {word:"Domare",     hint:"Dömer"}
+        ]
+      }},
+
+      /* Nya extra kategorier */
+      { id: "verktyg", name: "Verktyg", words: {
+        easy: [
+          {word:"Hammare",     hint:"Spik"},
+          {word:"Skiftnyckel", hint:"Mutter"}
+        ],
+        medium: [
+          {word:"Skruvmejsel", hint:"Kryss"},
+          {word:"Tång",        hint:"Grepp"}
+        ],
+        hard: [
+          {word:"Hyvel",       hint:"Spån"},
+          {word:"Stämjärn",    hint:"Egg"}
+        ]
+      }},
+
+      { id: "musik", name: "Musik", words: {
+        easy: [
+          {word:"Gitarr",   hint:"Strängar"},
+          {word:"Piano",    hint:"Tangent"}
+        ],
+        medium: [
+          {word:"Trummor",  hint:"Pukor"},
+          {word:"Violin",   hint:"Stråke"}
+        ],
+        hard: [
+          {word:"Saxofon",  hint:"Rörblad"},
+          {word:"Klarinett",hint:"Munrör"}
+        ]
+      }},
+
+      { id: "kropp", name: "Kropp", words: {
+        easy: [
+          {word:"Hand",   hint:"Fem"},
+          {word:"Fot",    hint:"Häl"}
+        ],
+        medium: [
+          {word:"Knä",    hint:"Led"},
+          {word:"Axel",   hint:"Kula"}
+        ],
+        hard: [
+          {word:"Nacke",  hint:"Kotpelare"},
+          {word:"Lunga",  hint:"Andning"}
+        ]
+      }},
+
+      { id: "teknik", name: "Teknik", words: {
+        easy: [
+          {word:"Mobil",   hint:"Skärm"},
+          {word:"Dator",   hint:"Tangent"}
+        ],
+        medium: [
+          {word:"Router",  hint:"Wi‑Fi"},
+          {word:"Kamera",  hint:"Sensor"}
+        ],
+        hard: [
+          {word:"Server",  hint:"Rack"},
+          {word:"Drönare", hint:"Propeller"}
+        ]
+      }},
+
+      { id: "stader", name: "Städer", words: {
+        easy: [
+          {word:"Stockholm", hint:"Slussen"},
+          {word:"Göteborg",  hint:"Avenyn"}
+        ],
+        medium: [
+          {word:"Malmö",     hint:"Öresund"},
+          {word:"Uppsala",   hint:"Domkyrka"}
+        ],
+        hard: [
+          {word:"Lund",      hint:"Nationsliv"},
+          {word:"Kiruna",    hint:"Gruva"}
+        ]
+      }},
+
+      { id: "vaxter", name: "Växter", words: {
+        easy: [
+          {word:"Björk",  hint:"Vita stammar"},
+          {word:"Gran",   hint:"Barr"}
+        ],
+        medium: [
+          {word:"Tall",   hint:"Kåda"},
+          {word:"Lönn",   hint:"Flikblad"}
+        ],
+        hard: [
+          {word:"Ormbunke", hint:"Sporer"},
+          {word:"Lav",      hint:"Symbios"}
+        ]
+      }},
+
+      { id: "dryck", name: "Dryck", words: {
+        easy: [
+          {word:"Kaffe",   hint:"Bönor"},
+          {word:"Te",      hint:"Blad"}
+        ],
+        medium: [
+          {word:"Läsk",    hint:"Kolsyrad"},
+          {word:"Juice",   hint:"Pressad"}
+        ],
+        hard: [
+          {word:"Kombucha", hint:"SCOBY"},
+          {word:"Mate",     hint:"Kalebass"}
         ]
       }},
     ];
@@ -209,7 +342,6 @@
     const randInt = max => crypto.getRandomValues(new Uint32Array(1))[0] % max;
     const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=randInt(i+1); [a[i],a[j]]=[a[j],a[i]]} return a; };
     const byId = id => document.getElementById(id);
-    const fmt = n => String(n).padStart(2,"0");
     const clamp = (n,min,max) => Math.max(min, Math.min(max,n));
 
     /*************** Spel‑state ***************/
@@ -218,7 +350,7 @@
       players: Array.from({length:4}, (_,i)=>({id:i, name:`Spelare ${i+1}`, isImposter:false, score:0})),
       nextId: 10,
       selectedCategories: [],
-      settings: { difficulty:"medium", imposterCount:1, hintsEnabled:true },
+      settings: { difficulty:"medium", imposterCount:1, hintsEnabled:true }, // hintsEnabled styr om impostor får hint
       secretWord:"", secretCategory:"", secretHint:"",
       roundNumber:1, currentRevealIndex:0, speakingOrder: null,
       tallyTargetId: null // IRL vald spelare (eller null = ingen tydlig majoritet)
@@ -273,9 +405,9 @@
       render();
     }
 
+    // IRL röst: selectedId = spelare som fick flest pekningar (eller null)
     function endRound(selectedId){
-      // IRL röst: selectedId = spelare som fick flest pekningar (eller null)
-      state.tallyTargetId = selectedId===undefined ? null : selectedId;
+      state.tallyTargetId = (selectedId===undefined) ? null : selectedId;
       applyScores();
       state.phase = "results";
       render();
@@ -467,9 +599,10 @@
           <div class="card">
             <div class="title">Ledtrådar</div>
             <label class="stack">
-              <span class="pill">Visa hint till spelare:</span>
+              <span class="pill">Visa hint för impostor:</span>
               <input type="checkbox" id="hints" ${state.settings.hintsEnabled?"checked":""} />
             </label>
+            <span class="hint">Crewmates får aldrig se hint.</span>
           </div>
 
           <div class="sep"></div>
@@ -486,7 +619,7 @@
       byId("start").onclick = startRound;
     }
 
-    /* Rollvisning – flip-kort (utan överlapp) */
+    /* Rollvisning – flip-kort (Crew ser ord/kategori, Impostor ser endast hint) */
     function renderRoleReveal(){
       const p = state.players[state.currentRevealIndex];
       const last = state.currentRevealIndex === state.players.length - 1;
@@ -500,32 +633,31 @@
             <div class="flip-container">
               <div class="flip-card" id="flipCard">
 
-                <!-- FRAMSIDA (baksidekortet) -->
+                <!-- FRAMSIDA -->
                 <div class="flip-side flip-front">
-                  <h2 class="role-title">👤 ${p.name}</h2>
+                  <h2 class="role-title">${p.name}</h2>
                   <p class="hint">Tryck för att vända kortet</p>
                   <button class="btn flip-button" id="flipBtn">Vänd kortet</button>
                 </div>
 
-                <!-- BAKSIDA (faktisk roll + ord) -->
+                <!-- BAKSIDA -->
                 <div class="flip-side flip-back">
-                  ${p.isImposter
+                  ${
+                    p.isImposter
                     ? html`
-                        <h2 class="bad role-title">Du är IMPOSTOR 👀</h2>
-                        ${state.settings.hintsEnabled ? html`<p class="hint">Hint: <b>${state.secretHint}</b></p>` : ""}
-                        <div class="secret-wrap">
-                          <span class="hint">Hemliga ordet (för crewmates):</span>
-                          <div class="tag">Du ser inte ordet – bluffa trovärdigt!</div>
-                        </div>
-                      `
+                      <h2 class="bad role-title">IMPOSTOR</h2>
+                      ${state.settings.hintsEnabled ? html`<p class="hint">Hint: <b>${state.secretHint}</b></p>` : `<p class="hint">Hint: <b>Ingen</b></p>`}
+                      <div class="secret-wrap">
+                        <span class="hint">Hemligt ord:</span>
+                        <div class="tag">Du får INTE se ordet.</div>
+                      </div>`
                     : html`
-                        <h2 class="ok role-title">Du är CREWMATE ✅</h2>
-                        <div class="secret-wrap">
-                          <span class="hint">Hemliga ordet:</span>
-                          <div class="secret-word">${state.secretWord}</div>
-                          <span class="hint">Kategori: ${state.secretCategory}${state.settings.hintsEnabled ? " • Hint: <b>"+state.secretHint+"</b>" : ""}</span>
-                        </div>
-                      `
+                      <h2 class="ok role-title">CREWMATE</h2>
+                      <div class="secret-wrap">
+                        <span class="hint">Hemligt ord:</span>
+                        <div class="secret-word">${state.secretWord}</div>
+                        <span class="hint">Kategori: ${state.secretCategory}</span>
+                      </div>`
                   }
                 </div>
 
